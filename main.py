@@ -14,9 +14,19 @@ url = "https://www.alphavantage.co"
 banner = """
 ////////////////////////////////
 //                            //
-//       Consult Actions      //
+//        FOREX CONSULT       //
 //                            //
 ////////////////////////////////
+"""
+
+forex = """
+   | 1 | FX_DAILY
+   | 2 | FX_WEEKLY
+   | 3 | FX_MONTHLY
+   | 4 | FX_INTRADAY 
+   
+
+
 """
 
 
@@ -26,7 +36,7 @@ class Api:
       self.apikey = apikey
       self.url = url
    
-   def consult(self,function,from_symbol,to_symbol,**kwargs):
+   def consult_forex(self,function,from_symbol,to_symbol,**kwargs):
       urlconsult = url+f'/query?function={function}&from_symbol={from_symbol}&to_symbol={to_symbol}&apikey={self.apikey}'
       if kwargs.items():
          for key, value in kwargs.items():
@@ -40,12 +50,13 @@ api = Api(url,key)
 while True:
    os.system('cls')
    print(banner)
+   print(forex)
    function = str(input('Qual função deseja:'))
    if function.strip() == ('FX_DAILY' or 'FX_WEEKLY' or 'FX_MONTHLY'):
       from_money = str(input('De moeda:'))
       to_money = str(input('Para moeda:'))
       dias = int(input('Quantos dias quer ver:').strip())
-      response = api.consult(function,from_money,to_money)
+      response = api.consult_forex(function,from_money,to_money)
       dados = response[1]['Time Series FX (Daily)']
       total = 0
       closing = []
@@ -79,4 +90,4 @@ while True:
       x.align['Ganho'] = 'r'
       print(x)
       
-      teste = input()
+      teste = input('Tecle enter para continuar com as consultas')
