@@ -1,5 +1,6 @@
 # Api-Key = QR0JTD77RB5HWWOF
 
+import prettytable
 import requests
 import os
 from prettytable import PrettyTable
@@ -18,6 +19,8 @@ banner = """
 //        FOREX CONSULT       //
 //                            //
 ////////////////////////////////
+
+   CREATED BY: MatheusMMS031
 """
 
 options = """
@@ -26,13 +29,18 @@ options = """
    | 3 | FX_MONTHLY
    | 4 | FX_INTRADAY 
    
-   | 1 | DIGITAL_CURRENCY_DAILY
+   | 5 | DIGITAL_CURRENCY_DAILY
+   | 6 | DIGITAL_CURRENCY_WEEKLY
+   | 7 | DIGITAL_CURRENCY_MONTHLY
+   
+   | 0 | EXIT
    
 
 """
 
-
-
+forex = ['FX_DAILY','FX_WEEKLY','FX_MONTHLY','FX_INTRADAY']
+crypto = ['DIGITAL_CURRENCY_DAILY','DIGITAL_CURRENCY_WEEKLY','DIGITAL_CURRENCY_MONTHLY']
+commands = forex + crypto
 class Api:
    def __init__(self,url,apikey):
       self.apikey = apikey
@@ -47,15 +55,14 @@ class Api:
       response_dict = json.loads(response.text)
       return [response,response_dict]
    
-   def consult_crypto(self,function,symbol,market,**kwargs):
+   def consult_crypto(self,function,symbol,market):
       urlconsult = url+f'/query?function={function}&symbol={symbol}&market={market}&apikey={self.apikey}'
-      if kwargs.items():
-         for key, value in kwargs.items():
-            urlconsult += f'&{key}={value}'
       response = requests.get(urlconsult)
-      response_dict = json.loads(response.text)
-      return [response,response_dict]
+      responseObject = json.loads(response.text)
+      return [response, responseObject]
    
+api = Api(url,"QR0JTD77RB5HWWOF")
+
 key = str(input('Api-Key:'))
 api = Api(url,key)
 while True:
@@ -64,56 +71,36 @@ while True:
    print(options)
    function = str(input('Qual função deseja:'))
    
-   if function.strip() == 'FX_DAILY' or 'FX_WEEKLY' or 'FX_MONTHLY':
+   if function.strip() in forex:
       from_money = str(input('De moeda:'))
       to_money = str(input('Para moeda:'))
-      dias = int(input('Quantos dias quer ver:').strip())
-      response = api.consult_forex(function,from_money,to_money)
-      dados = response[1]
-      dados = list(dados.values())[1]
+      dias = int(input('Quantos intervalos quer ver:').strip())
+      responseObject = api.consult_forex(function,from_money,to_money)[1]
+   
+   if function.strip() in crypto:
+      symbol = str(input('De simbolo:'))
+      market = str(input('Para mercado:'))
+      days = int(input('Quantos intervalos quer ver:').strip())
+      responseObject = api.consult_crypto(function,symbol,market)[1]
       
+   if function.strip() == 'EXIT':
+      break
+      
+   if function.strip() in commands:
+      dados = list(responseObject.values())[1]
       total = 0
-      closing = []
-      high = []
-      low = []
-      up = []
-      date = []
-      opening = []
+      x = PrettyTable()
+      items = list(list(dados.values())[0].keys())
+      items.insert(0,'Data')
+      x.field_names = items
       for c in dados:
          total += 1
-         date.append(c)
-         high.append(float(dados[c]['2. high']))
-         low.append(float(dados[c]['3. low']))
-         up.append(float(dados[c]['1. open'])-float(dados[c]['4. close']))
-         opening.append(float(dados[c]['1. open']))
-         closing.append(float(dados[c]['4. close']))
-         if total == dias:
+         items_individual = list(dados[c].values())
+         items_individual.insert(0,c)
+         x.add_row(items_individual)
+         if total == 10:
             break
-      print('DADOS > \n')
-      x = PrettyTable()
-      x.add_column('Datas', date)
-      x.add_column('Abertura', opening)
-      x.add_column('Alto', high)
-      x.add_column('Baixo', low)
-      x.add_column('Fechamento',closing)
-      x.add_column('Ganho',up)
-      x.align['Abertura'] = 'r'
-      x.align['Alto'] = 'r'
-      x.align['Baixo'] = 'r'
-      x.align['Fechamento'] = 'r'
-      x.align['Ganho'] = 'r'
       print(x)
-      
-   if function.strip() == 'DIGITAL_CURRENCY_DAILY':
-      symbol = str(input('De symbol:'))
-      market = str(input('Para mercado:'))
-      dias = int(input('Quantos dias quer ver:').strip())
-      response = api.consult_crypto(function,from_money,to_money)
-      dados = response[1]
-      dados = list(dados.values())[1]
-      
-      print(dados)
-      
       
    
    teste = input('Tecle enter para continuar com as consultas')
